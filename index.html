@@ -56,8 +56,9 @@
   .result-title{ font-weight:700; font-size:15px; margin-bottom:6px;}
   .result-title.ok{ color:var(--ok); }
   .result-title.warn{ color:var(--warn); }
-  .result-row{ font-size:13px; color:var(--sub); display:flex; justify-content:space-between; padding:3px 0; gap:10px;}
-  .result-row b{ color:var(--text); font-weight:600; text-align:right;}
+  .result-row{ font-size:13px; color:var(--sub); display:flex; justify-content:space-between; align-items:flex-start; padding:3px 0; gap:10px;}
+  .result-row span:first-child{ min-width:0; word-break:break-word; }
+  .result-row b{ color:var(--text); font-weight:600; text-align:right; white-space:nowrap; flex-shrink:0; }
   .item-line{ display:flex; justify-content:space-between; align-items:flex-start; gap:10px; padding:6px 0; border-bottom:1px solid rgba(255,255,255,.06); font-size:13px;}
   .item-line span:first-child{ min-width:0; word-break:break-word; }
   .item-line span:last-child{ white-space:nowrap; flex-shrink:0; color:var(--text); }
