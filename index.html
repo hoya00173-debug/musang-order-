@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+<title>무상오더 물품 수령 확인</title>
+<style>
+  :root{
+    --bg: #101820;
+    --panel: #17212b;
+    --panel-2: #1e2a37;
+    --line: #2a3a49;
+    --text: #eaf1f5;
+    --sub: #8ea3b3;
+    --accent: #2ec4b6;
+    --accent-dim: #1a4d49;
+    --warn: #ff6b5e;
+    --warn-dim: #4a2320;
+    --ok: #2ec4b6;
+    --radius: 14px;
+    font-family: -apple-system, BlinkMacSystemFont, "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{ margin:0; background:var(--bg); color:var(--text); min-height:100vh; padding: 18px 14px 60px; }
+  .wrap{ max-width: 640px; margin: 0 auto; }
+  header{ text-align:center; margin-bottom:18px; }
+  header .eyebrow{ font-size:12px; letter-spacing:.12em; color:var(--accent); text-transform:uppercase; font-weight:600;}
+  header h1{ font-size:20px; margin:6px 0 2px; font-weight:700;}
+  header p{ font-size:13px; color:var(--sub); margin:0;}
+  .tabs{ display:flex; justify-content:center; gap:6px; background:var(--panel); border-radius: 999px; padding:4px; margin-bottom:16px; }
+  .tab{ flex:0 0 auto; min-width:110px; text-align:center; padding:9px 18px; border-radius:999px; font-size:13px; font-weight:600; color:var(--sub); cursor:pointer; transition:.15s; user-select:none;}
+  .tab.active{ background:var(--panel-2); color:var(--accent); box-shadow: inset 0 0 0 1.5px var(--accent); }
+  .card{ background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:18px; margin-bottom:14px; }
+  .card h2{ font-size:15px; margin:0 0 12px; color:var(--text);}
+  label{ font-size:12px; color:var(--sub); display:block; margin-bottom:6px; margin-top:12px;}
+  label:first-child{ margin-top:0; }
+  input[type=text], input[type=number]{
+    width:100%; background:var(--panel-2); border:1px solid var(--line); color:var(--text);
+    border-radius:10px; padding:11px 12px; font-size:15px; outline:none;
+  }
+  input:focus{ border-color:var(--accent); }
+  button{ border:none; border-radius:10px; padding:12px 16px; font-size:14px; font-weight:700; cursor:pointer; transition:.15s; width:100%; }
+  .btn-primary{ background:var(--accent); color:#06231f; margin-top:14px;}
+  .btn-primary:disabled{ opacity:.45; cursor:not-allowed; }
+  .btn-ghost{ background:transparent; border:1px solid var(--line); color:var(--sub); }
+  .btn-small{ width:auto; padding:6px 12px; font-size:12px; margin-top:0; }
+  .photo-drop{
+    margin-top:14px; border:1.5px dashed var(--line); border-radius:12px;
+    padding:22px; text-align:center; cursor:pointer; color:var(--sub); font-size:13px; background:var(--panel-2);
+  }
+  .photo-drop img{ max-width:100%; border-radius:8px; margin-top:10px; }
+  input[type=file]{ display:none; }
+  .result{ margin-top:16px; border-radius:12px; padding:16px; }
+  .result.ok{ background:var(--accent-dim); border:1px solid var(--accent);}
+  .result.warn{ background:var(--warn-dim); border:1px solid var(--warn);}
+  .result-title{ font-weight:700; font-size:15px; margin-bottom:6px;}
+  .result-title.ok{ color:var(--ok); }
+  .result-title.warn{ color:var(--warn); }
+  .result-row{ font-size:13px; color:var(--sub); display:flex; justify-content:space-between; padding:3px 0; gap:10px;}
+  .result-row b{ color:var(--text); font-weight:600; text-align:right;}
+  .item-line{ display:flex; justify-content:space-between; align-items:flex-start; gap:10px; padding:6px 0; border-bottom:1px solid rgba(255,255,255,.06); font-size:13px;}
+  .item-line span:first-child{ min-width:0; word-break:break-word; }
+  .item-line span:last-child{ white-space:nowrap; flex-shrink:0; color:var(--text); }
+  .item-line:last-child{ border-bottom:none; }
+  .spinner{ width:18px; height:18px; border:2.5px solid var(--panel-2); border-top-color:var(--accent); border-radius:50%; animation:spin .7s linear infinite; display:inline-block; vertical-align:middle; margin-right:8px;}
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+  @keyframes highlightPulse{
+    0%   { box-shadow: 0 0 0 0 rgba(46,196,182,0.7); border-color: var(--accent); }
+    70%  { box-shadow: 0 0 0 10px rgba(46,196,182,0); border-color: var(--accent); }
+    100% { box-shadow: 0 0 0 0 rgba(46,196,182,0); border-color: var(--line); }
+  }
+  .highlight-pulse{ animation: highlightPulse 0.9s ease-out 2; border-radius:10px; }
+  .muted-center{ text-align:center; color:var(--sub); font-size:13px; padding:20px 0; }
+  table{ width:100%; border-collapse:collapse; font-size:12px; }
+  th, td{ text-align:left; padding:7px 8px; border-bottom:1px solid var(--line); vertical-align:top; white-space:nowrap; }
+  td.wrap-cell{ white-space:normal; min-width:170px; max-width:280px; word-break:break-word; }
+  .table-scroll{ overflow-x:auto; -webkit-overflow-scrolling:touch; }
+  th{ color:var(--sub); font-weight:600; }
+  .badge{ display:inline-block; padding:2px 8px; border-radius:999px; font-size:11px; font-weight:700;}
+  .badge.ok{ background:var(--accent-dim); color:var(--ok); }
+  .badge.warn{ background:var(--warn-dim); color:var(--warn); }
+  .badge.pending{ background:#3a3320; color:#e0b84a; }
+  .mini-row{ display:flex; gap:8px; }
+  .mini-row input{ flex:1; }
+  .admin-card{ border:1px solid var(--line); border-radius:10px; padding:12px; margin-bottom:10px; background:var(--panel-2);}
+  .admin-card .head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;}
+  .admin-card .head b{ font-size:13.5px; }
+  .admin-card .head .meta{ color:var(--sub); font-size:11.5px; }
+  .admin-card .items{ font-size:12px; color:var(--sub); }
+  .admin-card .items div{ display:flex; justify-content:space-between; align-items:center; gap:8px; padding:3px 0; flex-wrap:nowrap; }
+  .admin-card .items div span:first-child{ min-width:0; word-break:break-word; }
+  .admin-card .items div span:last-child{ color:var(--text); white-space:nowrap; flex-shrink:0; display:inline-flex; align-items:center; gap:6px; }
+  .x-btn{ background:none; border:none; color:var(--warn); font-size:16px; cursor:pointer; width:auto; padding:0 4px; }
+  .helptext{ font-size:13.5px; color:var(--sub); margin-top:6px; line-height:1.5; }
+  select{ background:var(--panel-2); border:1px solid var(--line); color:var(--text); border-radius:10px; padding:11px; font-size:14px; width:100%; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1 id="mainTitle">무상오더 물품 수령 확인</h1>
+  </header>
+
+  <div class="tabs">
+    <div class="tab active" data-tab="pickup">수령하기</div>
+    <div class="tab" data-tab="admin">품목등록</div>
+    <div class="tab" data-tab="log">수령내역</div>
+  </div>
+  <div id="adminUnlockRow" style="text-align:right; margin:-8px 0 12px;">
+    <span id="adminUnlockLink" style="font-size:11.5px; color:var(--sub); text-decoration:underline; cursor:pointer;">관리자</span>
+  </div>
+  <div id="adminAuthPanel" class="card" style="display:none;">
+    <h2 style="margin-bottom:10px;">관리자 확인</h2>
+    <div class="mini-row">
+      <input type="text" id="adminAuthInput">
+      <button class="btn-primary" id="adminAuthBtn" style="width:auto; flex:0 0 auto; margin-top:0;">확인</button>
+    </div>
+    <div id="adminAuthMsg" class="helptext"></div>
+  </div>
+
+  <!-- PICKUP TAB -->
+  <div id="tab-pickup">
+    <div class="card">
+      <h2>1. 담당자 또는 오더생성자 이름</h2>
+      <input type="text" id="empId" placeholder="예: 김광동">
+      <div class="helptext">이름을 입력하면 가져가야 하는 품목을 볼 수 있어요.</div>
+      <div style="margin-top:6px;">
+        <span id="deptBrowseLink" style="font-size:13.5px; color:var(--sub); text-decoration:underline; cursor:pointer;">이름을 모르겠어요 (부서로 찾기)</span>
+      </div>
+      <div id="deptBrowsePanel" style="display:none; margin-top:8px;"></div>
+      <div id="empInfo"></div>
+
+      <h2 style="margin-top:20px;">2. 실제 수령자 이름 (대리수령인 경우만 입력)</h2>
+      <input type="text" id="actualReceiverInput" placeholder="본인이 직접 가져가면 비워두세요">
+      <div class="helptext">담당자/오더생성자가 아닌 다른 분이 대신 가져가는 경우, 실제로 가져가는 분 이름을 적어주세요.</div>
+
+      <h2 style="margin-top:20px;">3. 가져가는 박스 사진</h2>
+      <div class="helptext" style="color:var(--warn); font-weight:700; font-size:12.5px; margin-bottom:8px;">⚠️ 라벨의 제품명·규격이 잘 보이게, 흔들리지 않게 찍어주세요!</div>
+      <div class="photo-drop" id="photoDrop">
+        📷 눌러서 사진 선택 / 촬영 (여러 장 가능)<br>
+        <span style="font-size:13px;">여러 종류면 여러 장 나눠서 찍어도 돼요</span>
+        <div id="photoPreviewWrap"></div>
+      </div>
+      <input type="file" id="photoInput" accept="image/*" multiple>
+
+      <button class="btn-primary" id="verifyBtn" disabled>제출하기</button>
+      <div id="resultArea"></div>
+    </div>
+  </div>
+
+  <!-- ADMIN TAB -->
+  <div id="tab-admin" style="display:none;">
+    <div class="card">
+      <h2>품목 등록</h2>
+      <div class="helptext">품목/배정은 이제 구글시트 "배정목록" 탭에 직접 입력해서 관리해요. 시트에 입력한 내용은 아래 목록에 그대로 반영돼요.</div>
+    </div>
+
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h2 style="margin:0;">등록된 품목 목록</h2>
+        <button class="btn-danger btn-small" id="resetAllBtn">전체 초기화</button>
+      </div>
+      <div id="admList" style="margin-top:12px;"><div class="muted-center">불러오는 중…</div></div>
+    </div>
+  </div>
+
+  <!-- LOG TAB -->
+  <div id="tab-log" style="display:none;">
+    <div class="card">
+      <h2>수령 기록</h2>
+      <div style="display:flex; flex-wrap:nowrap; gap:6px; align-items:center;">
+        <input type="date" id="logFrom" style="flex:1; min-width:0; padding:8px 4px; font-size:12px;">
+        <input type="date" id="logTo" style="flex:1; min-width:0; padding:8px 4px; font-size:12px;">
+        <button class="btn-primary" id="logFilterBtn" style="flex:0 0 auto; width:auto; margin-top:0; padding:8px 10px; font-size:12px; white-space:nowrap;">조회</button>
+        <button class="btn-ghost" id="logFilterClearBtn" style="flex:0 0 auto; width:auto; padding:8px 10px; font-size:12px; white-space:nowrap;">초기화</button>
+      </div>
+      <div id="logList" style="margin-top:14px;"><div class="muted-center">불러오는 중…</div></div>
+      <button class="btn-ghost" id="refreshLogBtn" style="margin-top:12px;">새로고침</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzSz1jR8-0V2C-dh7hSRnCwoYJHgKj3hkNpk2FqLWPhVJWAOH8WXCKBRFLfs_tNIYUH/exec';
+let photoList = []; // [{base64, mime}]
+let assignments = {}; // key(사번/이름) -> { name, dept, items: [{code,product,spec,qty}] }
+
+function norm(s){ return (s||'').toString().toLowerCase().replace(/\s|규격|ml|입/g,''); }
+
+function compressImage(base64, mime, maxWidth=900, quality=0.6){
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      let w = img.width, h = img.height;
+      if(w > maxWidth){ h = Math.round(h * maxWidth / w); w = maxWidth; }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      resolve(canvas.toDataURL('image/jpeg', quality).split(',')[1]);
+    };
+    img.onerror = () => resolve(null);
+    img.src = 'data:' + mime + ';base64,' + base64;
+  });
+}
+
+// ---------- tabs ----------
+const ADMIN_CODE = '25041';
+document.querySelector('.tab[data-tab="admin"]').style.display = 'none';
+
+document.getElementById('adminUnlockLink').addEventListener('click', () => {
+  const panel = document.getElementById('adminAuthPanel');
+  panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+});
+
+document.getElementById('adminAuthBtn').addEventListener('click', () => {
+  const val = document.getElementById('adminAuthInput').value.trim();
+  const msg = document.getElementById('adminAuthMsg');
+  if(val === ADMIN_CODE){
+    document.querySelector('.tab[data-tab="admin"]').style.display = '';
+    document.getElementById('adminAuthPanel').style.display = 'none';
+    document.getElementById('adminUnlockRow').style.display = 'none';
+    document.getElementById('adminAuthInput').value = '';
+    msg.textContent = '';
+  } else {
+    msg.innerHTML = '<span style="color:var(--warn);">사번이 일치하지 않아요.</span>';
+  }
+});
+
+document.querySelectorAll('.tab').forEach(t => {
+  t.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    ['pickup','admin','log'].forEach(id=>{
+      document.getElementById('tab-'+id).style.display = (id===t.dataset.tab)?'block':'none';
+    });
+    if(t.dataset.tab==='admin') renderAdminList();
+    if(t.dataset.tab==='log') renderLog();
+  });
+});
+
+// ---------- storage helpers (구글시트 백엔드) ----------
+async function loadAssignments(){
+  try{
+    const res = await fetch(APPS_SCRIPT_URL + '?action=getAssignments');
+    const json = await res.json();
+    assignments = json.ok ? json.data : {};
+  }catch(e){ console.error('배정 불러오기 실패', e); assignments = {}; }
+}
+async function saveAssignments(){
+  try{
+    await fetch(APPS_SCRIPT_URL, {
+      method:'POST',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify({ action:'saveAssignments', assignments })
+    });
+  }catch(e){ console.error('저장 실패', e); }
+}
+async function loadLogs(fromVal, toVal){
+  try{
+    let url = APPS_SCRIPT_URL + '?action=getLogs';
+    if(fromVal) url += '&from=' + encodeURIComponent(fromVal);
+    if(toVal) url += '&to=' + encodeURIComponent(toVal);
+    const res = await fetch(url);
+    const json = await res.json();
+    return json.ok ? json.data : [];
+  }catch(e){ console.error('기록 불러오기 실패', e); return []; }
+}
+async function appendLog(entry){
+  try{
+    await fetch(APPS_SCRIPT_URL, {
+      method:'POST',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify({ action:'appendLog', entry })
+    });
+  }catch(e){ console.error('로그 저장 실패', e); }
+}
+
+
+// ---------- pickup tab ----------
+const empIdInput = document.getElementById('empId');
+const empInfo = document.getElementById('empInfo');
+const verifyBtn = document.getElementById('verifyBtn');
+
+function checkReady(){ verifyBtn.disabled = !(empIdInput.value.trim() && photoList.length > 0); }
+
+function findAssignment(inputName){
+  const target = norm(inputName);
+  const exactKey = Object.keys(assignments).find(k => norm(k) === target);
+  const altKeys = Object.keys(assignments).filter(k => norm(assignments[k].altName) === target && norm(k) !== target);
+
+  if(!exactKey && altKeys.length === 0) return null;
+  if(exactKey && altKeys.length === 0) return assignments[exactKey];
+
+  const allKeys = exactKey ? [exactKey, ...altKeys] : altKeys;
+  let combinedItems = [];
+  allKeys.forEach(k => {
+    assignments[k].items.forEach(it => combinedItems.push({ ...it, owner: k }));
+  });
+  const depts = [...new Set(allKeys.map(k => assignments[k].dept).filter(Boolean))];
+
+  return {
+    name: inputName.trim(),
+    altName: '',
+    dept: depts.join(', '),
+    items: combinedItems,
+    subReceivers: allKeys
+  };
+}
+
+empIdInput.addEventListener('input', () => {
+  if(!assignmentsLoaded){
+    empInfo.innerHTML = `<div class="muted-center"><span class="spinner"></span>배정 정보를 불러오는 중…</div>`;
+    checkReady();
+    return;
+  }
+  const rec = findAssignment(empIdInput.value.trim());
+  if(rec){
+    empInfo.innerHTML = `<div style="margin-bottom:12px; border-radius:10px; padding:10px 12px; color:var(--warn); font-weight:700; font-size:13px; line-height:1.6;">⚠️ 제품 규격 및 수량 확인 후 수령 바랍니다.<br>확인 부재로 분실 및 오배송 발생 시 책임지지 않습니다.</div>` +
+      `<div class="helptext"><b style="color:var(--text)">${rec.name}</b>${rec.altName && norm(rec.altName)!==norm(rec.name) ? ` (오더생성자: ${rec.altName})` : ''} ${rec.dept?('· '+rec.dept):''}${rec.subReceivers && rec.subReceivers.length>1 ? ` · ${rec.subReceivers.join(', ')} 배정 합산`:''} 배정 품목 (총 ${rec.items.length}개, 빠짐없이 확인하고 가져가주세요):</div>` +
+      rec.items.map(it => `<div class="item-line"><span>${it.product}${it.spec?(' ('+it.spec+')'):''}${(rec.subReceivers && rec.subReceivers.length>1 && it.owner) ? `<div class="meta" style="color:var(--accent); font-size:11.5px;">담당자: ${it.owner}</div>` : ''}${it.note?`<div class="meta" style="color:var(--sub); font-size:11px; white-space:normal;">비고: ${it.note}</div>`:''}</span><span>${it.qty}박스${it.units?(' · 총 '+it.units+'개'):''}</span></div>`).join('');
+
+  } else if(empIdInput.value.trim()){
+    empInfo.innerHTML = `<div class="helptext" style="color:var(--warn)">등록된 품목이 없어요. 품목 등록 탭에서 먼저 등록해주세요.</div>`;
+  } else { empInfo.innerHTML = ''; }
+  checkReady();
+});
+
+// ---------- 부서로 찾기 ----------
+const deptBrowseLink = document.getElementById('deptBrowseLink');
+const deptBrowsePanel = document.getElementById('deptBrowsePanel');
+deptBrowseLink.addEventListener('click', () => {
+  if(deptBrowsePanel.style.display === 'none'){
+    renderDeptList();
+    deptBrowsePanel.style.display = 'block';
+  } else {
+    deptBrowsePanel.style.display = 'none';
+  }
+});
+
+function renderDeptList(){
+  const depts = [...new Set(Object.values(assignments).map(r => r.dept).filter(Boolean))].sort();
+  if(depts.length === 0){
+    deptBrowsePanel.innerHTML = `<div class="helptext">등록된 부서가 없어요.</div>`;
+    return;
+  }
+  deptBrowsePanel.innerHTML = `<div style="display:flex; flex-wrap:wrap; gap:6px;">` +
+    depts.map(d => `<button type="button" class="btn-ghost btn-small" data-dept="${d}" style="width:auto;">${d}</button>`).join('') +
+    `</div>`;
+  deptBrowsePanel.querySelectorAll('[data-dept]').forEach(btn => {
+    btn.addEventListener('click', () => renderNameList(btn.dataset.dept));
+  });
+}
+
+function renderNameList(dept){
+  const names = Object.keys(assignments).filter(k => assignments[k].dept === dept);
+  deptBrowsePanel.innerHTML = `<div class="helptext" style="margin-bottom:6px;">${dept} — 이름 선택:</div>` +
+    `<div style="display:flex; flex-wrap:wrap; gap:6px;">` +
+    names.map(n => {
+      const r = assignments[n];
+      const label = (r.altName && norm(r.altName)!==norm(n)) ? `${n} (${r.altName})` : n;
+      return `<button type="button" class="btn-ghost btn-small" data-name="${n}" style="width:auto;">${label}</button>`;
+    }).join('') +
+    `</div><div style="margin-top:8px;"><button type="button" class="btn-ghost btn-small" id="deptBackBtn" style="width:auto;">← 부서 목록으로</button></div>`;
+  deptBrowsePanel.querySelectorAll('[data-name]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      empIdInput.value = btn.dataset.name;
+      empIdInput.dispatchEvent(new Event('input'));
+      deptBrowsePanel.style.display = 'none';
+    });
+  });
+  const backBtn = document.getElementById('deptBackBtn');
+  if(backBtn) backBtn.addEventListener('click', renderDeptList);
+}
+
+document.getElementById('photoDrop').addEventListener('click', () => document.getElementById('photoInput').click());
+document.getElementById('photoInput').addEventListener('change', (e) => {
+  const files = Array.from(e.target.files || []);
+  if(files.length === 0) return;
+  files.forEach(file => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      photoList.push({ base64: reader.result.split(',')[1], mime: file.type || 'image/jpeg', dataUrl: reader.result });
+      renderPhotoPreviews();
+      checkReady();
+    };
+    reader.readAsDataURL(file);
+  });
+  e.target.value = ''; // 같은 파일 다시 선택 가능하게
+});
+
+function renderPhotoPreviews(){
+  const wrap = document.getElementById('photoPreviewWrap');
+  const thumbs = photoList.map((p, i) => `
+    <div style="position:relative; display:inline-block; margin:4px;">
+      <img src="${p.dataUrl}" style="max-width:110px; max-height:110px; border-radius:8px; display:block;">
+      <button data-remove-photo="${i}" style="position:absolute; top:-6px; right:-6px; width:22px; height:22px; padding:0; border-radius:50%; background:var(--warn); color:#fff; font-size:12px; line-height:1;">✕</button>
+    </div>`).join('');
+  const addMoreBtn = photoList.length > 0
+    ? `<div style="margin-top:8px;"><button id="addMorePhotosBtn" class="btn-ghost btn-small" type="button">+ 사진 추가</button></div>`
+    : '';
+  wrap.innerHTML = thumbs + addMoreBtn;
+  wrap.querySelectorAll('[data-remove-photo]').forEach(btn => {
+    btn.addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      photoList.splice(Number(btn.dataset.removePhoto), 1);
+      renderPhotoPreviews();
+      checkReady();
+    });
+  });
+  const addBtn = document.getElementById('addMorePhotosBtn');
+  if(addBtn){
+    addBtn.addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      document.getElementById('photoInput').click();
+    });
+  }
+}
+
+verifyBtn.addEventListener('click', async () => {
+  const key = empIdInput.value.trim();
+  const rec = findAssignment(key);
+  const actualReceiver = document.getElementById('actualReceiverInput').value.trim();
+  verifyBtn.disabled = true;
+  const resultArea = document.getElementById('resultArea');
+  resultArea.innerHTML = `<div class="muted-center"><span class="spinner"></span>기록 중…</div>`;
+
+  const compressedPhotos = [];
+  for(const p of photoList){
+    try{
+      const c = await compressImage(p.base64, p.mime);
+      if(c) compressedPhotos.push({ base64: c, mime: 'image/jpeg' });
+    }catch(e){ console.error('사진 압축 실패', e); }
+  }
+
+  await appendLog({
+    time: new Date().toISOString(),
+    name: rec ? rec.name : (key || '(미등록)'),
+    actualReceiver: actualReceiver || '',
+    assigned: rec ? rec.items : [],
+    photos: compressedPhotos
+  });
+
+  resultArea.innerHTML = `
+    <div class="result" style="background:var(--panel-2); border:1px solid var(--line);">
+      <div class="result-title" style="color:var(--text);">📝 수령 기록 완료</div>
+      ${actualReceiver ? `<div class="helptext" style="margin-bottom:6px;">실제 수령자: <b style="color:var(--text)">${actualReceiver}</b> (대리 수령)</div>` : ''}
+      ${rec ? rec.items.map(it => `<div class="result-row"><span>${it.product}${it.spec?(' ('+it.spec+')'):''}</span><b>${it.qty}개</b></div>`).join('') : `<div class="result-row"><span>배정 정보가 없어 이름/사번만 기록됐어요.</span></div>`}
+      <div class="helptext">사진 ${compressedPhotos.length}장이 이 기록에 함께 저장됐어요. 수령 기록 탭에서 언제든 다시 확인할 수 있어요.</div>
+    </div>`;
+
+  empIdInput.value = '';
+  empInfo.innerHTML = '';
+  document.getElementById('actualReceiverInput').value = '';
+  photoList = [];
+  document.getElementById('photoPreviewWrap').innerHTML = '';
+  verifyBtn.disabled = true;
+});
+
+// ---------- admin tab: reset all ----------
+let resetTimer = null;
+const resetAllBtn = document.getElementById('resetAllBtn');
+resetAllBtn.addEventListener('click', async () => {
+  if(!resetArmed){
+    resetArmed = true;
+    resetAllBtn.textContent = '한번 더 누르면 전체 삭제';
+    clearTimeout(resetTimer);
+    resetTimer = setTimeout(() => {
+      resetArmed = false;
+      resetAllBtn.textContent = '전체 초기화';
+    }, 4000);
+    return;
+  }
+  clearTimeout(resetTimer);
+  resetArmed = false;
+  resetAllBtn.textContent = '전체 초기화';
+  assignments = {};
+  await saveAssignments();
+  renderAdminListUI();
+});
+
+async function renderAdminList(){
+  await loadAssignments();
+  renderAdminListUI();
+}
+
+function renderAdminListUI(){
+  const wrap = document.getElementById('admList');
+  const keys = Object.keys(assignments);
+  if(keys.length === 0){
+    wrap.innerHTML = `<div class="muted-center">등록된 품목이 없어요.</div>`;
+    return;
+  }
+  wrap.innerHTML = keys.map(key => {
+    const r = assignments[key];
+    return `<div class="admin-card">
+      <div class="head">
+        <div><b>${key}</b>${r.altName && norm(r.altName)!==norm(key) ? ` <span class="meta">(오더생성자: ${r.altName})</span>` : ''} <span class="meta">${r.dept || ''}</span></div>
+        <button class="x-btn" data-delperson="${key}">✕</button>
+      </div>
+      <div class="items">
+        ${r.items.map((it, idx) => `<div><span>${it.product}${it.spec?(' ('+it.spec+')'):''}${it.note?`<div class="meta" style="font-size:11px;">비고: ${it.note}</div>`:''}</span><span>${it.qty}박스${it.units?(' · '+it.units+'개'):''} <button class="x-btn" data-delitem="${key}::${idx}" style="font-size:13px;">✕</button></span></div>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
+  wrap.querySelectorAll('[data-delperson]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      delete assignments[btn.dataset.delperson];
+      await saveAssignments();
+      renderAdminListUI();
+    });
+  });
+  wrap.querySelectorAll('[data-delitem]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const [key, idx] = btn.dataset.delitem.split('::');
+      assignments[key].items.splice(Number(idx), 1);
+      if(assignments[key].items.length === 0) delete assignments[key];
+      await saveAssignments();
+      renderAdminListUI();
+    });
+  });
+}
+
+// ---------- log tab ----------
+async function renderLog(){
+  const wrap = document.getElementById('logList');
+  wrap.innerHTML = `<div class="muted-center"><span class="spinner"></span>불러오는 중…</div>`;
+  const fromVal = document.getElementById('logFrom').value;
+  const toVal = document.getElementById('logTo').value;
+  const logs = await loadLogs(fromVal, toVal);
+
+  if(logs.length === 0){
+    wrap.innerHTML = `<div class="muted-center">${(fromVal||toVal) ? '해당 기간에 기록이 없어요.' : '아직 기록이 없어요.'}</div>`;
+    return;
+  }
+  wrap.innerHTML = `<div class="table-scroll"><table>
+    <tr><th>시각</th><th>수령자</th><th>제품명</th><th>사진</th></tr>
+    ${logs.map(l => `
+      <tr>
+        <td>${new Date(l.time).toLocaleDateString('ko-KR', {month:'numeric', day:'numeric'})}<br>${new Date(l.time).toLocaleTimeString('ko-KR', {hour:'2-digit', minute:'2-digit'})}</td>
+        <td>${l.name}${l.actualReceiver ? `<div class="meta" style="color:var(--sub); font-size:11px; white-space:normal;">실제: ${l.actualReceiver}</div>` : ''}</td>
+        <td class="wrap-cell">${(l.assigned||[]).map(a=>`<div style="display:flex; justify-content:space-between; gap:8px; align-items:flex-start;"><span style="min-width:0; word-break:break-word;">${a.product}</span><span style="white-space:nowrap; flex-shrink:0; color:var(--text);">×${a.qty}</span></div>`).join('') || '-'}</td>
+        <td>${(l.photoUrls && l.photoUrls.length) ? `<div style="display:flex; flex-wrap:nowrap; gap:4px;">${l.photoUrls.map((u,i)=>`<a href="${u}" target="_blank" class="btn-ghost btn-small" style="display:inline-block; text-decoration:none; text-align:center; flex-shrink:0; margin:0;">사진${l.photoUrls.length>1?(i+1):''}</a>`).join('')}</div>` : '-'}</td>
+      </tr>`).join('')}
+  </table></div>`;
+}
+document.getElementById('refreshLogBtn').addEventListener('click', renderLog);
+document.getElementById('logFilterBtn').addEventListener('click', renderLog);
+document.getElementById('logFilterClearBtn').addEventListener('click', () => {
+  document.getElementById('logFrom').value = '';
+  document.getElementById('logTo').value = '';
+  renderLog();
+});
+
+// ---------- init ----------
+let assignmentsLoaded = false;
+empInfo.innerHTML = `<div class="muted-center"><span class="spinner"></span>배정 정보를 불러오는 중…</div>`;
+loadAssignments().then(() => {
+  assignmentsLoaded = true;
+  if(empIdInput.value.trim()){
+    empIdInput.dispatchEvent(new Event('input'));
+  } else {
+    empInfo.innerHTML = '';
+  }
+});
+</script>
+</body>
+</html>
