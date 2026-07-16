@@ -107,19 +107,7 @@
 
   <div class="tabs">
     <div class="tab active" data-tab="pickup">수령하기</div>
-    <div class="tab" data-tab="admin">품목등록</div>
     <div class="tab" data-tab="log">수령내역</div>
-  </div>
-  <div id="adminUnlockRow" style="text-align:right; margin:-8px 0 12px;">
-    <span id="adminUnlockLink" style="font-size:11.5px; color:var(--sub); text-decoration:underline; cursor:pointer;">관리자</span>
-  </div>
-  <div id="adminAuthPanel" class="card" style="display:none;">
-    <h2 style="margin-bottom:10px;">관리자 확인</h2>
-    <div class="mini-row">
-      <input type="text" id="adminAuthInput">
-      <button class="btn-primary" id="adminAuthBtn" style="width:auto; flex:0 0 auto; margin-top:0;">확인</button>
-    </div>
-    <div id="adminAuthMsg" class="helptext"></div>
   </div>
 
   <!-- PICKUP TAB -->
@@ -149,22 +137,6 @@
 
       <button class="btn-primary" id="verifyBtn" disabled>제출하기</button>
       <div id="resultArea"></div>
-    </div>
-  </div>
-
-  <!-- ADMIN TAB -->
-  <div id="tab-admin" style="display:none;">
-    <div class="card">
-      <h2>품목 등록</h2>
-      <div class="helptext">품목/배정은 이제 구글시트 "배정목록" 탭에 직접 입력해서 관리해요. 시트에 입력한 내용은 아래 목록에 그대로 반영돼요.</div>
-    </div>
-
-    <div class="card">
-      <div style="display:flex; justify-content:space-between; align-items:center;">
-        <h2 style="margin:0;">등록된 품목 목록</h2>
-        <button class="btn-danger btn-small" id="resetAllBtn">전체 초기화</button>
-      </div>
-      <div id="admList" style="margin-top:12px;"><div class="muted-center">불러오는 중…</div></div>
     </div>
   </div>
 
@@ -209,36 +181,14 @@ function compressImage(base64, mime, maxWidth=900, quality=0.6){
 }
 
 // ---------- tabs ----------
-const ADMIN_CODE = '25041';
-document.querySelector('.tab[data-tab="admin"]').style.display = 'none';
-
-document.getElementById('adminUnlockLink').addEventListener('click', () => {
-  const panel = document.getElementById('adminAuthPanel');
-  panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
-});
-
-document.getElementById('adminAuthBtn').addEventListener('click', () => {
-  const val = document.getElementById('adminAuthInput').value.trim();
-  const msg = document.getElementById('adminAuthMsg');
-  if(val === ADMIN_CODE){
-    document.querySelector('.tab[data-tab="admin"]').style.display = '';
-    document.getElementById('adminAuthPanel').style.display = 'none';
-    document.getElementById('adminUnlockRow').style.display = 'none';
-    document.getElementById('adminAuthInput').value = '';
-    msg.textContent = '';
-  } else {
-    msg.innerHTML = '<span style="color:var(--warn);">사번이 일치하지 않아요.</span>';
-  }
-});
 
 document.querySelectorAll('.tab').forEach(t => {
   t.addEventListener('click', () => {
     document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
     t.classList.add('active');
-    ['pickup','admin','log'].forEach(id=>{
+    ['pickup','log'].forEach(id=>{
       document.getElementById('tab-'+id).style.display = (id===t.dataset.tab)?'block':'none';
     });
-    if(t.dataset.tab==='admin') renderAdminList();
     if(t.dataset.tab==='log') renderLog();
   });
 });
@@ -500,70 +450,6 @@ verifyBtn.addEventListener('click', async () => {
   document.getElementById('photoPreviewWrap').innerHTML = '';
   verifyBtn.disabled = true;
 });
-
-// ---------- admin tab: reset all ----------
-let resetTimer = null;
-const resetAllBtn = document.getElementById('resetAllBtn');
-resetAllBtn.addEventListener('click', async () => {
-  if(!resetArmed){
-    resetArmed = true;
-    resetAllBtn.textContent = '한번 더 누르면 전체 삭제';
-    clearTimeout(resetTimer);
-    resetTimer = setTimeout(() => {
-      resetArmed = false;
-      resetAllBtn.textContent = '전체 초기화';
-    }, 4000);
-    return;
-  }
-  clearTimeout(resetTimer);
-  resetArmed = false;
-  resetAllBtn.textContent = '전체 초기화';
-  assignments = {};
-  await saveAssignments();
-  renderAdminListUI();
-});
-
-async function renderAdminList(){
-  await loadAssignments();
-  renderAdminListUI();
-}
-
-function renderAdminListUI(){
-  const wrap = document.getElementById('admList');
-  const keys = Object.keys(assignments);
-  if(keys.length === 0){
-    wrap.innerHTML = `<div class="muted-center">등록된 품목이 없어요.</div>`;
-    return;
-  }
-  wrap.innerHTML = keys.map(key => {
-    const r = assignments[key];
-    return `<div class="admin-card">
-      <div class="head">
-        <div><b>${r.name}</b>${r.altName && norm(r.altName)!==norm(r.name) ? ` <span class="meta">(오더생성자: ${r.altName})</span>` : ''} <span class="meta">${r.dept || ''}</span></div>
-        <button class="x-btn" data-delperson="${key}">✕</button>
-      </div>
-      <div class="items">
-        ${r.items.map((it, idx) => `<div><span>${it.product}${it.spec?(' ('+it.spec+')'):''}${it.note?`<div class="meta" style="font-size:11px;">비고: ${it.note}</div>`:''}</span><span>${it.qty}박스${it.units?(' · '+it.units+'개'):''} <button class="x-btn" data-delitem="${key}::${idx}" style="font-size:13px;">✕</button></span></div>`).join('')}
-      </div>
-    </div>`;
-  }).join('');
-  wrap.querySelectorAll('[data-delperson]').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      delete assignments[btn.dataset.delperson];
-      await saveAssignments();
-      renderAdminListUI();
-    });
-  });
-  wrap.querySelectorAll('[data-delitem]').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      const [key, idx] = btn.dataset.delitem.split('::');
-      assignments[key].items.splice(Number(idx), 1);
-      if(assignments[key].items.length === 0) delete assignments[key];
-      await saveAssignments();
-      renderAdminListUI();
-    });
-  });
-}
 
 // ---------- log tab ----------
 async function renderLog(){
