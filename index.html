@@ -172,6 +172,7 @@
   <div id="tab-log" style="display:none;">
     <div class="card">
       <h2>수령 기록</h2>
+      <div class="helptext" style="margin-bottom:10px;">수령 기록은 수령일로부터 2주간만 보관됩니다.</div>
       <div style="display:flex; flex-wrap:nowrap; gap:6px; align-items:center;">
         <input type="date" id="logFrom" style="flex:1; min-width:0; padding:8px 4px; font-size:12px;">
         <input type="date" id="logTo" style="flex:1; min-width:0; padding:8px 4px; font-size:12px;">
@@ -285,47 +286,84 @@ const empIdInput = document.getElementById('empId');
 const empInfo = document.getElementById('empInfo');
 const verifyBtn = document.getElementById('verifyBtn');
 
-function checkReady(){ verifyBtn.disabled = !(empIdInput.value.trim() && photoList.length > 0); }
+let pendingAmbiguous = false;
+function checkReady(){ verifyBtn.disabled = !(empIdInput.value.trim() && photoList.length > 0 && !pendingAmbiguous); }
 
 function findAssignment(inputName){
   const target = norm(inputName);
-  const exactKey = Object.keys(assignments).find(k => norm(k) === target);
-  const altKeys = Object.keys(assignments).filter(k => norm(assignments[k].altName) === target && norm(k) !== target);
+  const allRecords = Object.values(assignments);
+  const nameMatches = allRecords.filter(a => norm(a.name) === target);
+  const altMatches = allRecords.filter(a => norm(a.altName) === target && norm(a.name) !== target);
 
-  if(!exactKey && altKeys.length === 0) return null;
-  if(exactKey && altKeys.length === 0) return assignments[exactKey];
+  if(nameMatches.length === 0 && altMatches.length === 0) return null;
 
-  const allKeys = exactKey ? [exactKey, ...altKeys] : altKeys;
+  // 같은 이름인데 부서가 다른 사람이 여러 명이면(동명이인) 부서를 먼저 골라야 함
+  if(nameMatches.length > 1){
+    return { ambiguous: true, candidates: nameMatches };
+  }
+
+  const ownEntries = nameMatches.length === 1 ? [nameMatches[0]] : [];
+  const allEntries = [...ownEntries, ...altMatches];
+
+  if(allEntries.length === 1 && altMatches.length === 0){
+    return allEntries[0];
+  }
+
   let combinedItems = [];
-  allKeys.forEach(k => {
-    assignments[k].items.forEach(it => combinedItems.push({ ...it, owner: k }));
-  });
-  const depts = [...new Set(allKeys.map(k => assignments[k].dept).filter(Boolean))];
+  allEntries.forEach(a => { a.items.forEach(it => combinedItems.push({ ...it, owner: a.name })); });
+  const depts = [...new Set(allEntries.map(a => a.dept).filter(Boolean))];
 
   return {
     name: inputName.trim(),
     altName: '',
     dept: depts.join(', '),
     items: combinedItems,
-    subReceivers: allKeys
+    subReceivers: allEntries.map(a => a.name)
   };
 }
 
+function renderAssignmentInfo(rec){
+  empInfo.innerHTML = `<div style="margin-bottom:12px; border-radius:10px; padding:10px 12px; color:var(--warn); font-weight:700; font-size:13px; line-height:1.6;">⚠️ 제품 규격 및 수량 확인 후 수령 바랍니다.<br>확인 부재로 분실 및 오배송 발생 시 책임지지 않습니다.</div>` +
+    `<div class="helptext"><b style="color:var(--text)">${rec.name}</b>${rec.altName && norm(rec.altName)!==norm(rec.name) ? ` (오더생성자: ${rec.altName})` : ''} ${rec.dept?('· '+rec.dept):''}${rec.subReceivers && rec.subReceivers.length>1 ? ` · ${rec.subReceivers.join(', ')} 배정 합산`:''} 배정 품목 (총 ${rec.items.length}개, 빠짐없이 확인하고 가져가주세요):</div>` +
+    rec.items.map(it => `<div class="item-line"><span>${it.product}${it.spec?(' ('+it.spec+')'):''}${(rec.subReceivers && rec.subReceivers.length>1 && it.owner) ? `<div class="meta" style="color:var(--accent); font-size:11.5px;">담당자: ${it.owner}</div>` : ''}${it.note?`<div class="meta" style="color:var(--sub); font-size:11px; white-space:normal;">비고: ${it.note}</div>`:''}</span><span>${it.qty}박스${it.units?(' · 총 '+it.units+'개'):''}</span></div>`).join('');
+}
+
+function renderAmbiguousChoice(candidates){
+  empInfo.innerHTML = `<div class="helptext" style="color:var(--warn); margin-bottom:8px;">동명이인이 있어요. 부서를 선택해주세요:</div>` +
+    `<div style="display:flex; flex-wrap:wrap; gap:6px;">` +
+    candidates.map((c, i) => `<button type="button" class="btn-ghost btn-small" data-cand="${i}" style="width:auto;">${c.dept || '(부서없음)'}</button>`).join('') +
+    `</div><div id="candPickArea"></div>`;
+  empInfo.querySelectorAll('[data-cand]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentRec = candidates[Number(btn.dataset.cand)];
+      pendingAmbiguous = false;
+      renderAssignmentInfo(currentRec);
+      checkReady();
+    });
+  });
+}
+
+let currentRec = null;
+
 empIdInput.addEventListener('input', () => {
+  currentRec = null;
   if(!assignmentsLoaded){
     empInfo.innerHTML = `<div class="muted-center"><span class="spinner"></span>배정 정보를 불러오는 중…</div>`;
     checkReady();
     return;
   }
   const rec = findAssignment(empIdInput.value.trim());
-  if(rec){
-    empInfo.innerHTML = `<div style="margin-bottom:12px; border-radius:10px; padding:10px 12px; color:var(--warn); font-weight:700; font-size:13px; line-height:1.6;">⚠️ 제품 규격 및 수량 확인 후 수령 바랍니다.<br>확인 부재로 분실 및 오배송 발생 시 책임지지 않습니다.</div>` +
-      `<div class="helptext"><b style="color:var(--text)">${rec.name}</b>${rec.altName && norm(rec.altName)!==norm(rec.name) ? ` (오더생성자: ${rec.altName})` : ''} ${rec.dept?('· '+rec.dept):''}${rec.subReceivers && rec.subReceivers.length>1 ? ` · ${rec.subReceivers.join(', ')} 배정 합산`:''} 배정 품목 (총 ${rec.items.length}개, 빠짐없이 확인하고 가져가주세요):</div>` +
-      rec.items.map(it => `<div class="item-line"><span>${it.product}${it.spec?(' ('+it.spec+')'):''}${(rec.subReceivers && rec.subReceivers.length>1 && it.owner) ? `<div class="meta" style="color:var(--accent); font-size:11.5px;">담당자: ${it.owner}</div>` : ''}${it.note?`<div class="meta" style="color:var(--sub); font-size:11px; white-space:normal;">비고: ${it.note}</div>`:''}</span><span>${it.qty}박스${it.units?(' · 총 '+it.units+'개'):''}</span></div>`).join('');
-
+  if(rec && rec.ambiguous){
+    pendingAmbiguous = true;
+    renderAmbiguousChoice(rec.candidates);
+  } else if(rec){
+    pendingAmbiguous = false;
+    currentRec = rec;
+    renderAssignmentInfo(rec);
   } else if(empIdInput.value.trim()){
+    pendingAmbiguous = false;
     empInfo.innerHTML = `<div class="helptext" style="color:var(--warn)">등록된 품목이 없어요. 품목 등록 탭에서 먼저 등록해주세요.</div>`;
-  } else { empInfo.innerHTML = ''; }
+  } else { pendingAmbiguous = false; empInfo.innerHTML = ''; }
   checkReady();
 });
 
@@ -356,19 +394,22 @@ function renderDeptList(){
 }
 
 function renderNameList(dept){
-  const names = Object.keys(assignments).filter(k => assignments[k].dept === dept);
+  const entries = Object.values(assignments).filter(r => r.dept === dept);
   deptBrowsePanel.innerHTML = `<div class="helptext" style="margin-bottom:6px;">${dept} — 이름 선택:</div>` +
     `<div style="display:flex; flex-wrap:wrap; gap:6px;">` +
-    names.map(n => {
-      const r = assignments[n];
-      const label = (r.altName && norm(r.altName)!==norm(n)) ? `${n} (${r.altName})` : n;
-      return `<button type="button" class="btn-ghost btn-small" data-name="${n}" style="width:auto;">${label}</button>`;
+    entries.map((r, idx) => {
+      const label = (r.altName && norm(r.altName)!==norm(r.name)) ? `${r.name} (${r.altName})` : r.name;
+      return `<button type="button" class="btn-ghost btn-small" data-idx="${idx}" style="width:auto;">${label}</button>`;
     }).join('') +
     `</div><div style="margin-top:8px;"><button type="button" class="btn-ghost btn-small" id="deptBackBtn" style="width:auto;">← 부서 목록으로</button></div>`;
-  deptBrowsePanel.querySelectorAll('[data-name]').forEach(btn => {
+  deptBrowsePanel.querySelectorAll('[data-idx]').forEach(btn => {
     btn.addEventListener('click', () => {
-      empIdInput.value = btn.dataset.name;
-      empIdInput.dispatchEvent(new Event('input'));
+      const r = entries[Number(btn.dataset.idx)];
+      empIdInput.value = r.name;
+      currentRec = r;
+      pendingAmbiguous = false;
+      renderAssignmentInfo(r);
+      checkReady();
       deptBrowsePanel.style.display = 'none';
     });
   });
@@ -422,7 +463,7 @@ function renderPhotoPreviews(){
 
 verifyBtn.addEventListener('click', async () => {
   const key = empIdInput.value.trim();
-  const rec = findAssignment(key);
+  const rec = (currentRec && !currentRec.ambiguous) ? currentRec : null;
   const actualReceiver = document.getElementById('actualReceiverInput').value.trim();
   verifyBtn.disabled = true;
   const resultArea = document.getElementById('resultArea');
@@ -498,7 +539,7 @@ function renderAdminListUI(){
     const r = assignments[key];
     return `<div class="admin-card">
       <div class="head">
-        <div><b>${key}</b>${r.altName && norm(r.altName)!==norm(key) ? ` <span class="meta">(오더생성자: ${r.altName})</span>` : ''} <span class="meta">${r.dept || ''}</span></div>
+        <div><b>${r.name}</b>${r.altName && norm(r.altName)!==norm(r.name) ? ` <span class="meta">(오더생성자: ${r.altName})</span>` : ''} <span class="meta">${r.dept || ''}</span></div>
         <button class="x-btn" data-delperson="${key}">✕</button>
       </div>
       <div class="items">
