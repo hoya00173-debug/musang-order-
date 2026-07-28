@@ -31,7 +31,7 @@
   header h1{ font-size:20px; margin:6px 0 2px; font-weight:700;}
   header p{ font-size:13px; color:var(--sub); margin:0;}
   .tabs{ display:flex; justify-content:center; gap:6px; background:var(--panel); border-radius: 999px; padding:4px; margin-bottom:16px; }
-  .tab{ flex:0 0 auto; min-width:110px; text-align:center; padding:9px 18px; border-radius:999px; font-size:13px; font-weight:600; color:var(--sub); cursor:pointer; transition:.15s; user-select:none;}
+  .tab{ flex:1 1 auto; min-width:0; text-align:center; padding:9px 12px; border-radius:999px; font-size:13px; font-weight:600; color:var(--sub); cursor:pointer; transition:.15s; user-select:none;}
   .tab.active{ background:var(--panel-2); color:var(--accent); box-shadow: inset 0 0 0 1.5px var(--accent); }
   .card{ background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:18px; margin-bottom:14px; }
   .card h2{ font-size:15px; margin:0 0 12px; color:var(--text);}
@@ -97,6 +97,54 @@
   .x-btn{ background:none; border:none; color:var(--warn); font-size:16px; cursor:pointer; width:auto; padding:0 4px; }
   .helptext{ font-size:13.5px; color:var(--sub); margin-top:6px; line-height:1.5; }
   select{ background:var(--panel-2); border:1px solid var(--line); color:var(--text); border-radius:10px; padding:11px; font-size:14px; width:100%; }
+
+  /* ===== 수령 현황판 ===== */
+  .dash-controls{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:12px; }
+  .dash-controls input[type=text]{ flex:1; min-width:120px; }
+  .live-label{ font-size:12px; color:var(--sub); display:inline-flex; align-items:center; white-space:nowrap; }
+  .live-dot{ width:8px; height:8px; border-radius:50%; background:var(--accent); display:inline-block; margin-right:6px; animation:livePulse 1.6s infinite; }
+  @keyframes livePulse{ 0%{box-shadow:0 0 0 0 rgba(46,196,182,.6);} 70%{box-shadow:0 0 0 7px rgba(46,196,182,0);} 100%{box-shadow:0 0 0 0 rgba(46,196,182,0);} }
+  .stat-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:14px; }
+  .stat{ background:var(--panel-2); border:1px solid var(--line); border-radius:12px; padding:12px 8px; text-align:center; }
+  .stat .num{ font-size:22px; font-weight:800; line-height:1.1; }
+  .stat .lbl{ font-size:11px; color:var(--sub); margin-top:4px; line-height:1.35; }
+  .stat.ok .num{ color:var(--ok); }
+  .stat.part .num{ color:#e0b84a; }
+  .stat.none .num{ color:var(--warn); }
+  .toggle{ display:inline-flex; align-items:center; gap:6px; font-size:12px; color:var(--sub); cursor:pointer; user-select:none; }
+  .toggle input{ width:auto; }
+  .prog{ height:8px; background:var(--bg); border-radius:999px; overflow:hidden; margin-top:6px; }
+  .prog > i{ display:block; height:100%; width:0; background:var(--accent); border-radius:999px; transition:width .5s ease; }
+  .prog.part > i{ background:#e0b84a; }
+  .prog.none > i{ background:var(--warn); }
+  .dash-person{ border:1px solid var(--line); border-radius:12px; padding:12px; margin-bottom:10px; background:var(--panel-2); }
+  .dash-person .top{ display:flex; justify-content:space-between; align-items:center; gap:8px; }
+  .dash-person .who{ font-size:14px; font-weight:700; min-width:0; word-break:break-word; }
+  .dash-person .who .dept{ font-size:11.5px; color:var(--sub); font-weight:500; margin-left:6px; }
+  .dash-person .qty{ font-size:12px; color:var(--sub); margin-top:6px; }
+  .dash-person .qty b{ color:var(--text); font-size:14px; }
+  .dash-items{ margin-top:8px; display:none; }
+  .dash-items.open{ display:block; }
+  .dash-item{ display:flex; justify-content:space-between; gap:8px; font-size:12px; padding:4px 0; border-top:1px dashed rgba(255,255,255,.07); }
+  .dash-item:first-child{ border-top:none; }
+  .dash-item .r{ white-space:nowrap; flex-shrink:0; }
+  .expand-hint{ font-size:11.5px; color:var(--sub); cursor:pointer; text-decoration:underline; margin-top:8px; display:inline-block; }
+  .qty-editor{ margin-top:10px; border:1px solid var(--line); border-radius:10px; padding:10px 12px; background:var(--panel-2); display:none; }
+  .qty-editor.open{ display:block; }
+  .qty-row{ display:flex; align-items:center; gap:8px; padding:5px 0; font-size:12.5px; }
+  .qty-row .name{ flex:1; min-width:0; word-break:break-word; }
+  .qty-row .stepper{ display:flex; align-items:center; gap:6px; flex-shrink:0; }
+  .qty-row .stepper button{ width:30px; height:30px; padding:0; border-radius:8px; background:var(--panel); border:1px solid var(--line); color:var(--text); font-size:18px; font-weight:700; line-height:1; }
+  .qty-row .stepper input{ width:54px; text-align:center; padding:6px 4px; }
+  .stock-row{ padding:11px 2px; border-bottom:1px solid var(--line); }
+  .stock-row:last-child{ border-bottom:none; }
+  .stock-row .s-top{ display:flex; justify-content:space-between; align-items:baseline; gap:10px; margin-bottom:6px; }
+  .s-name{ font-size:14px; font-weight:600; min-width:0; word-break:break-word; }
+  .s-name .s-spec{ font-size:11.5px; color:var(--sub); font-weight:400; }
+  .s-rem{ font-size:13px; white-space:nowrap; flex-shrink:0; }
+  .s-rem b{ font-size:21px; font-weight:800; }
+  .s-foot{ font-size:11.5px; color:var(--sub); margin-top:5px; display:flex; justify-content:space-between; gap:8px; }
+  @media (max-width:420px){ .stat-grid{ grid-template-columns:repeat(2,1fr); } }
 </style>
 </head>
 <body>
@@ -107,6 +155,7 @@
 
   <div class="tabs">
     <div class="tab active" data-tab="pickup">수령하기</div>
+    <div class="tab" data-tab="dashboard">수령 현황판</div>
     <div class="tab" data-tab="log">수령내역</div>
   </div>
 
@@ -137,6 +186,25 @@
 
       <button class="btn-primary" id="verifyBtn" disabled>제출하기</button>
       <div id="resultArea"></div>
+    </div>
+  </div>
+
+  <!-- DASHBOARD TAB -->
+  <div id="tab-dashboard" style="display:none;">
+    <div class="card">
+      <h2 style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+        <span>수령 현황판</span>
+        <span class="live-label" id="liveLabel"></span>
+      </h2>
+      <div class="stat-grid" id="dashStats"></div>
+      <div class="dash-controls">
+        <input type="text" id="dashSearch" placeholder="품목명 검색 (예: 옥수수수염차)">
+        <label class="toggle"><input type="checkbox" id="autoRefresh" checked> 실시간</label>
+        <button class="btn-ghost btn-small" id="dashRefreshBtn" style="width:auto;">새로고침</button>
+      </div>
+      <div id="dashCount" style="font-size:12px; color:var(--sub); margin-bottom:10px;"></div>
+      <div id="dashList"><div class="muted-center">불러오는 중…</div></div>
+      <div id="dashExtra" class="helptext" style="margin-top:10px;"></div>
     </div>
   </div>
 
@@ -186,10 +254,11 @@ document.querySelectorAll('.tab').forEach(t => {
   t.addEventListener('click', () => {
     document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
     t.classList.add('active');
-    ['pickup','log'].forEach(id=>{
+    ['pickup','dashboard','log'].forEach(id=>{
       document.getElementById('tab-'+id).style.display = (id===t.dataset.tab)?'block':'none';
     });
     if(t.dataset.tab==='log') renderLog();
+    if(t.dataset.tab==='dashboard'){ openDashboard(); } else { stopDashboardPolling(); }
   });
 });
 
@@ -272,10 +341,64 @@ function findAssignment(inputName){
   };
 }
 
+function receivedForItem(ownerName, it){
+  return buildReceivedMap(logCache)[itemKey(ownerName, it)] || 0;
+}
+
 function renderAssignmentInfo(rec){
-  empInfo.innerHTML = `<div style="margin-bottom:12px; border-radius:10px; padding:10px 12px; color:var(--warn); font-weight:700; font-size:13px; line-height:1.6;">⚠️ 제품 규격 및 수량 확인 후 수령 바랍니다.<br>확인 부재로 분실 및 오배송 발생 시 책임지지 않습니다.</div>` +
-    `<div class="helptext"><b style="color:var(--text)">${rec.name}</b>${rec.altName && norm(rec.altName)!==norm(rec.name) ? ` (오더생성자: ${rec.altName})` : ''} ${rec.dept?('· '+rec.dept):''}${rec.subReceivers && rec.subReceivers.length>1 ? ` · ${rec.subReceivers.join(', ')} 배정 합산`:''} 배정 품목 (총 ${rec.items.length}개, 빠짐없이 확인하고 가져가주세요):</div>` +
-    rec.items.map(it => `<div class="item-line"><span>${it.product}${it.spec?(' ('+it.spec+')'):''}${(rec.subReceivers && rec.subReceivers.length>1 && it.owner) ? `<div class="meta" style="color:var(--accent); font-size:11.5px;">담당자: ${it.owner}</div>` : ''}${it.note?`<div class="meta" style="color:var(--sub); font-size:11px; white-space:normal;">비고: ${it.note}</div>`:''}</span><span>${it.qty}박스${it.units?(' · 총 '+it.units+'개'):''}</span></div>`).join('');
+  // 매번 전량 수령을 기본값으로 초기화(일부 수령 시 아래 조정기로 변경)
+  rec.items.forEach(it => { it._recv = Number(it.qty) || 0; });
+
+  const warn = `<div style="margin-bottom:12px; border-radius:10px; padding:10px 12px; color:var(--warn); font-weight:700; font-size:13px; line-height:1.6;">⚠️ 제품 규격 및 수량 확인 후 수령 바랍니다.<br>확인 부재로 분실 및 오배송 발생 시 책임지지 않습니다.</div>`;
+  const head = `<div class="helptext"><b style="color:var(--text)">${rec.name}</b>${rec.altName && norm(rec.altName)!==norm(rec.name) ? ` (오더생성자: ${rec.altName})` : ''} ${rec.dept?('· '+rec.dept):''}${rec.subReceivers && rec.subReceivers.length>1 ? ` · ${rec.subReceivers.join(', ')} 배정 합산`:''} 배정 품목 (총 ${rec.items.length}개, 빠짐없이 확인하고 가져가주세요):</div>`;
+
+  const lines = rec.items.map(it => {
+    const owner = it.owner || rec.name;
+    const already = receivedForItem(owner, it);
+    const remain = Math.max(0, (Number(it.qty)||0) - already);
+    const recvInfo = already>0
+      ? `<div class="meta" style="color:${remain>0?'var(--warn)':'var(--ok)'}; font-size:11.5px;">이미 ${already}박스 수령 · 잔여 ${remain}박스${remain<=0?' (완료)':''}</div>` : '';
+    return `<div class="item-line"><span>${it.product}${it.spec?(' ('+it.spec+')'):''}${(rec.subReceivers && rec.subReceivers.length>1 && it.owner) ? `<div class="meta" style="color:var(--accent); font-size:11.5px;">담당자: ${it.owner}</div>` : ''}${it.note?`<div class="meta" style="color:var(--sub); font-size:11px; white-space:normal;">비고: ${it.note}</div>`:''}${recvInfo}</span><span>${it.qty}박스${it.units?(' · 총 '+it.units+'개'):''}</span></div>`;
+  }).join('');
+
+  const editorRows = rec.items.map((it,i) => `
+    <div class="qty-row">
+      <span class="name">${it.product}${it.spec?(' ('+it.spec+')'):''}</span>
+      <span class="stepper">
+        <button type="button" data-step="-1" data-i="${i}">−</button>
+        <input type="number" min="0" max="${Number(it.qty)||0}" data-qty="${i}" value="${it._recv}">
+        <span style="color:var(--sub); font-size:11px;">/${it.qty}</span>
+        <button type="button" data-step="1" data-i="${i}">+</button>
+      </span>
+    </div>`).join('');
+  const editorLink = `<span class="expand-hint" id="qtyEditLink">일부만 가져가요 · 수령 수량 조정 ▾</span>`;
+  const editor = `<div class="qty-editor" id="qtyEditor"><div class="helptext" style="margin-top:0; margin-bottom:4px;">전량 수령이면 그대로 두세요. 일부만 가져가면 실제 수량으로 줄여주세요.</div>${editorRows}</div>`;
+
+  empInfo.innerHTML = warn + head + lines + editorLink + editor;
+
+  const link = document.getElementById('qtyEditLink');
+  const editorEl = document.getElementById('qtyEditor');
+  link.addEventListener('click', () => {
+    editorEl.classList.toggle('open');
+    link.textContent = editorEl.classList.contains('open') ? '수량 조정 접기 ▴' : '일부만 가져가요 · 수령 수량 조정 ▾';
+  });
+  empInfo.querySelectorAll('[data-qty]').forEach(inp => {
+    inp.addEventListener('input', () => {
+      const i = Number(inp.dataset.qty);
+      const max = Number(rec.items[i].qty)||0;
+      const v = Math.max(0, Math.min(max, Number(inp.value)||0));
+      rec.items[i]._recv = v;
+    });
+  });
+  empInfo.querySelectorAll('[data-step]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const i = Number(btn.dataset.i);
+      const inp = empInfo.querySelector(`[data-qty="${i}"]`);
+      const max = Number(rec.items[i].qty)||0;
+      const v = Math.max(0, Math.min(max, (Number(inp.value)||0) + Number(btn.dataset.step)));
+      inp.value = v; rec.items[i]._recv = v;
+    });
+  });
 }
 
 function renderAmbiguousChoice(candidates){
@@ -427,20 +550,30 @@ verifyBtn.addEventListener('click', async () => {
     }catch(e){ console.error('사진 압축 실패', e); }
   }
 
+  // 실제 수령 수량(recvQty)을 담아 로그 기록 (recvQty 미조정 시 전량)
+  const assignedForLog = rec ? rec.items.map(it => ({
+    code: it.code, product: it.product, spec: it.spec, qty: it.qty,
+    units: it.units, note: it.note, owner: it.owner,
+    recvQty: (it._recv !== undefined ? it._recv : (Number(it.qty)||0))
+  })) : [];
+
   await appendLog({
     time: new Date().toISOString(),
     name: rec ? rec.name : (key || '(미등록)'),
     actualReceiver: actualReceiver || '',
-    assigned: rec ? rec.items : [],
+    assigned: assignedForLog,
     photos: compressedPhotos
   });
+
+  // 캐시/현황판 즉시 갱신 (실시간 반영)
+  try{ await syncLogs(); if(document.getElementById('tab-dashboard').style.display !== 'none') renderDashboard(); }catch(e){}
 
   resultArea.innerHTML = `
     <div class="result" style="background:var(--panel-2); border:1px solid var(--line);">
       <div class="result-title" style="color:var(--text);">📝 수령 기록 완료</div>
       ${actualReceiver ? `<div class="helptext" style="margin-bottom:6px;">실제 수령자: <b style="color:var(--text)">${actualReceiver}</b> (대리 수령)</div>` : ''}
-      ${rec ? rec.items.map(it => `<div class="result-row"><span>${it.product}${it.spec?(' ('+it.spec+')'):''}</span><b>${it.qty}개</b></div>`).join('') : `<div class="result-row"><span>배정 정보가 없어 이름/사번만 기록됐어요.</span></div>`}
-      <div class="helptext">사진 ${compressedPhotos.length}장이 이 기록에 함께 저장됐어요. 수령 기록 탭에서 언제든 다시 확인할 수 있어요.</div>
+      ${rec ? assignedForLog.map(it => `<div class="result-row"><span>${it.product}${it.spec?(' ('+it.spec+')'):''}</span><b>${it.recvQty}박스 수령</b></div>`).join('') : `<div class="result-row"><span>배정 정보가 없어 이름/사번만 기록됐어요.</span></div>`}
+      <div class="helptext">사진 ${compressedPhotos.length}장이 함께 저장됐어요. <b style="color:var(--text)">수령 현황판</b>에 실시간으로 반영됩니다.</div>
     </div>`;
 
   empIdInput.value = '';
@@ -482,11 +615,194 @@ document.getElementById('logFilterClearBtn').addEventListener('click', () => {
   renderLog();
 });
 
+// ---------- 수령 현황판 (dashboard) ----------
+let logCache = [];      // 최근 로그 캐시 (배정 대비 수령 계산용)
+let dashTimer = null;   // 실시간 폴링 타이머
+let dashLabelTimer = null; // "N초 전" 라벨 갱신용
+let dashLastSync = 0;
+
+async function syncLogs(){
+  logCache = await loadLogs(); // 전체 기간(백엔드 보관정책 내)
+  dashLastSync = Date.now();
+  return logCache;
+}
+
+function itemKey(name, it){ return (name||'') + '::' + (it.code || it.product || ''); }
+
+// 로그에서 (수령자+품목)별 수령 박스 수 합산. recvQty가 없으면 배정수량 전량 수령으로 간주(하위호환).
+function buildReceivedMap(logs){
+  const m = {};
+  (logs||[]).forEach(l => {
+    (l.assigned||[]).forEach(it => {
+      const owner = it.owner || l.name;
+      const k = itemKey(owner, it);
+      const raw = (it.recvQty !== undefined && it.recvQty !== null && it.recvQty !== '')
+        ? Number(it.recvQty) : (Number(it.qty) || 0);
+      const recv = isNaN(raw) ? 0 : raw;
+      m[k] = (m[k] || 0) + recv;
+    });
+  });
+  return m;
+}
+
+// 품목(제품)별 배정/수령/잔여 집계 → "옥수수수염차 잔여 N박스"
+function prodKey(it){ return (it.code || it.product || ''); }
+
+function computeStock(logs){
+  const map = {};
+  const get = (k) => (map[k] || (map[k] = { key:k, product:'', spec:'', assignedBoxes:0, assignedUnits:0, recvBoxes:0, recvUnits:0, hasUnits:false }));
+
+  // 배정(총량)
+  Object.values(assignments).forEach(rec => {
+    (rec.items||[]).forEach(it => {
+      const k = prodKey(it); if(!k) return;
+      const e = get(k);
+      if(!e.product) e.product = it.product || k;
+      if(!e.spec && it.spec) e.spec = it.spec;
+      const boxes = Number(it.qty) || 0;
+      const units = Number(it.units) || 0;
+      e.assignedBoxes += boxes;
+      if(units>0){ e.assignedUnits += units; e.hasUnits = true; }
+    });
+  });
+
+  // 수령(차감) — recvQty 우선, 없으면 전량 수령
+  (logs||[]).forEach(l => {
+    (l.assigned||[]).forEach(it => {
+      const k = prodKey(it); if(!k) return;
+      const e = get(k);
+      if(!e.product) e.product = it.product || k;
+      if(!e.spec && it.spec) e.spec = it.spec;
+      const boxes = Number(it.qty) || 0;
+      const raw = (it.recvQty !== undefined && it.recvQty !== null && it.recvQty !== '') ? Number(it.recvQty) : boxes;
+      const recvBoxes = isNaN(raw) ? 0 : raw;
+      const units = Number(it.units) || 0;
+      e.recvBoxes += recvBoxes;
+      if(units>0 && boxes>0){ e.recvUnits += units * (recvBoxes / boxes); }
+    });
+  });
+
+  return Object.values(map).map(e => {
+    const recvBoxes = Math.min(e.recvBoxes, e.assignedBoxes); // 초과분은 배정량까지만
+    return {
+      ...e,
+      recvBoxes,
+      remBoxes: Math.max(0, e.assignedBoxes - e.recvBoxes),
+      remUnits: Math.max(0, Math.round(e.assignedUnits - e.recvUnits)),
+      pct: e.assignedBoxes>0 ? Math.round(recvBoxes / e.assignedBoxes * 100) : 0
+    };
+  });
+}
+
+function renderDashboard(){
+  const all = computeStock(logCache);
+  const q = norm((document.getElementById('dashSearch')||{}).value || '');
+  const list = q ? all.filter(e => norm(e.product).includes(q) || norm(e.spec).includes(q)) : all;
+
+  const totA = all.reduce((s,e)=>s+e.assignedBoxes,0);
+  const totR = all.reduce((s,e)=>s+e.recvBoxes,0);
+  const totRem = all.reduce((s,e)=>s+e.remBoxes,0);
+  const doneCnt = all.filter(e=>e.assignedBoxes>0 && e.remBoxes<=0).length;
+  const pct = totA>0 ? Math.round(totR/totA*100) : 0;
+
+  document.getElementById('dashStats').innerHTML = `
+    <div class="stat none"><div class="num">${totRem}</div><div class="lbl">남은 박스<br>(전체)</div></div>
+    <div class="stat"><div class="num">${pct}%</div><div class="lbl">전체 수령률<br>${totR}/${totA}박스</div></div>
+    <div class="stat"><div class="num">${all.length}</div><div class="lbl">품목 수</div></div>
+    <div class="stat ok"><div class="num">${doneCnt}</div><div class="lbl">소진완료</div></div>`;
+
+  const countEl = document.getElementById('dashCount');
+  if(countEl) countEl.textContent = all.length ? (q ? `검색 결과 ${list.length}개 / 전체 ${all.length}개 품목` : `전체 ${all.length}개 품목`) : '';
+
+  const el = document.getElementById('dashList');
+  if(all.length === 0){
+    el.innerHTML = `<div class="muted-center">등록된 배정이 없어요.</div>`;
+    updateLiveLabel();
+    return;
+  }
+  if(list.length === 0){
+    el.innerHTML = `<div class="muted-center">'${document.getElementById('dashSearch').value}' 검색 결과가 없어요.</div>`;
+    updateLiveLabel();
+    return;
+  }
+  // 품목명 순 고정 정렬 → 실시간 갱신 때 행 순서가 바뀌지 않음
+  list.sort((a,b)=> (a.product||'').localeCompare(b.product||'','ko'));
+  el.innerHTML = list.map(e => {
+    const done = e.assignedBoxes>0 && e.remBoxes<=0;
+    const low = !done && e.pct>=80;               // 80% 이상 나감 = 곧 소진
+    const st = done ? 'ok' : (low ? 'part' : 'none');
+    const remColor = done ? 'var(--sub)' : (low ? '#e0b84a' : 'var(--accent)');
+    const unitStr = e.hasUnits ? ` (약 ${e.remUnits.toLocaleString()}개)` : '';
+    const remText = done ? `<b style="color:${remColor}; font-size:15px;">소진완료</b>` : `<b style="color:${remColor};">${e.remBoxes}</b>박스 남음`;
+    return `
+      <div class="stock-row">
+        <div class="s-top">
+          <div class="s-name">${e.product}${e.spec?`<span class="s-spec"> · ${e.spec}</span>`:''}</div>
+          <div class="s-rem">${remText}</div>
+        </div>
+        <div class="prog ${st}"><i style="width:${e.pct}%"></i></div>
+        <div class="s-foot">
+          <span>수령 ${e.recvBoxes} / 총 ${e.assignedBoxes}박스</span>
+          <span>${done?'✓ 전량 수령':`잔여 ${e.remBoxes}박스${unitStr}`}</span>
+        </div>
+      </div>`;
+  }).join('');
+
+  document.getElementById('dashExtra').innerHTML = '';
+  updateLiveLabel();
+}
+
+function updateLiveLabel(){
+  const el = document.getElementById('liveLabel');
+  if(!el) return;
+  const on = document.getElementById('autoRefresh').checked;
+  const secs = Math.round((Date.now()-dashLastSync)/1000);
+  const ago = dashLastSync ? (secs<5?'방금':`${secs}초 전`) : '';
+  el.innerHTML = on ? `<span class="live-dot"></span>실시간 · ${ago}` : '자동 새로고침 꺼짐';
+}
+
+async function refreshDashboard(){
+  await syncLogs();
+  renderDashboard();
+}
+
+function startDashboardPolling(){
+  stopDashboardPolling();
+  dashTimer = setInterval(async () => {
+    if(document.hidden) return;
+    if(!document.getElementById('autoRefresh').checked){ updateLiveLabel(); return; }
+    await refreshDashboard();
+  }, 10000);
+  dashLabelTimer = setInterval(updateLiveLabel, 1000);
+}
+function stopDashboardPolling(){
+  if(dashTimer){ clearInterval(dashTimer); dashTimer=null; }
+  if(dashLabelTimer){ clearInterval(dashLabelTimer); dashLabelTimer=null; }
+}
+
+async function openDashboard(){
+  document.getElementById('dashList').innerHTML = `<div class="muted-center"><span class="spinner"></span>불러오는 중…</div>`;
+  if(!assignmentsLoaded){ await loadAssignments(); assignmentsLoaded = true; }
+  await refreshDashboard();
+  startDashboardPolling();
+}
+
+document.getElementById('dashRefreshBtn').addEventListener('click', refreshDashboard);
+document.getElementById('dashSearch').addEventListener('input', renderDashboard);
+document.getElementById('autoRefresh').addEventListener('change', () => {
+  updateLiveLabel();
+  if(document.getElementById('autoRefresh').checked) refreshDashboard();
+});
+document.addEventListener('visibilitychange', () => {
+  if(!document.hidden && dashTimer && document.getElementById('autoRefresh').checked) refreshDashboard();
+});
+
 // ---------- init ----------
 let assignmentsLoaded = false;
 empInfo.innerHTML = `<div class="muted-center"><span class="spinner"></span>배정 정보를 불러오는 중…</div>`;
-loadAssignments().then(() => {
+loadAssignments().then(async () => {
   assignmentsLoaded = true;
+  try{ await syncLogs(); }catch(e){}
   if(empIdInput.value.trim()){
     empIdInput.dispatchEvent(new Event('input'));
   } else {
