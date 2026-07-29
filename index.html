@@ -144,6 +144,53 @@
   .s-rem{ font-size:13px; white-space:nowrap; flex-shrink:0; }
   .s-rem b{ font-size:21px; font-weight:800; }
   .s-foot{ font-size:11.5px; color:var(--sub); margin-top:5px; display:flex; justify-content:space-between; gap:8px; }
+  /* 수령 화면 품목 표 (헤더행 + 정렬된 열) */
+  .pick-tbl{ margin-top:10px; }
+  .pick-grid{ display:grid; grid-template-columns:minmax(0,1fr) 36px 112px 44px; gap:8px; align-items:center; justify-items:center; }
+  .pick-th{ padding:4px 0 8px; border-bottom:1px solid var(--line); }
+  .pick-th > div{ font-size:11px; color:var(--sub); font-weight:700; text-align:center; line-height:1.2; }
+  .pick-th .u{ font-size:9.5px; color:var(--sub); font-weight:500; display:block; }
+  .pick-row{ padding:8px 0; border-bottom:1px solid rgba(255,255,255,.06); }
+  .pick-row:last-child{ border-bottom:none; }
+  .pick-name{ font-size:13px; font-weight:700; min-width:0; word-break:break-word; line-height:1.35; text-align:left; justify-self:stretch; }
+  .pick-name .spec{ font-size:11px; color:var(--sub); font-weight:500; }
+  .pick-assigned{ font-size:13px; color:var(--text); text-align:center; white-space:nowrap; }
+  .pick-units{ font-size:12.5px; color:var(--text); text-align:center; white-space:nowrap; font-weight:600; }
+  .pick-stepper{ display:flex; align-items:center; justify-content:center; gap:3px; }
+  .pick-stepper button{ width:28px; height:30px; padding:0; border-radius:6px; background:var(--panel); border:1px solid var(--accent); color:var(--accent); font-size:16px; font-weight:700; line-height:1; }
+  .pick-stepper button:disabled{ opacity:.35; border-color:var(--line); color:var(--sub); }
+  .pick-stepper input{ width:36px; text-align:center; padding:5px 1px; font-size:14px; font-weight:800; border-color:var(--accent); }
+  .pick-stepper input::-webkit-outer-spin-button,
+  .pick-stepper input::-webkit-inner-spin-button{ -webkit-appearance:none; appearance:none; margin:0; }
+  .pick-stepper input[type=number]{ -moz-appearance:textfield; appearance:textfield; }
+  .pick-meta{ font-size:11.5px; margin-top:6px; line-height:1.5; }
+  /* 현황판 한 줄 표 (품목 · 총 · 수령 · 잔여) */
+  .dash-tbl{ margin-top:4px; }
+  .dash-grid{ display:grid; grid-template-columns:minmax(0,1fr) 52px 52px 56px; gap:8px; align-items:center; justify-items:center; }
+  .dash-th{ padding:4px 0 8px; border-bottom:1px solid var(--line); }
+  .dash-th > div{ font-size:11px; color:var(--sub); font-weight:700; text-align:center; line-height:1.2; }
+  .dash-th .u{ font-size:9.5px; color:var(--sub); font-weight:500; display:block; }
+  .dash-trow{ padding:9px 0; border-bottom:1px solid rgba(255,255,255,.06); }
+  .dash-trow:last-child{ border-bottom:none; }
+  .dash-pname{ font-size:13px; font-weight:700; min-width:0; word-break:break-word; line-height:1.35; text-align:left; justify-self:stretch; }
+  .dash-pname .spec{ font-size:11px; color:var(--sub); font-weight:500; }
+  .dash-num{ font-size:14px; font-weight:700; white-space:nowrap; }
+  .dash-num.sub{ color:var(--sub); font-weight:600; font-size:13px; }
+  .dash-num.rem{ font-size:16px; font-weight:800; }
+  .dash-trow{ cursor:pointer; }
+  .dash-num.recv-link{ color:var(--accent); text-decoration:underline; text-underline-offset:2px; }
+  /* 수령 상세 팝업 */
+  .modal-overlay{ position:fixed; inset:0; background:rgba(0,0,0,.6); display:flex; align-items:flex-end; justify-content:center; z-index:1000; }
+  .modal-box{ background:var(--panel); border:1px solid var(--line); border-radius:16px 16px 0 0; width:100%; max-width:640px; max-height:82vh; overflow:auto; padding:16px; }
+  .modal-head{ display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:8px; position:sticky; top:-16px; background:var(--panel); padding-top:2px; }
+  .modal-head .mt{ font-size:15px; font-weight:800; min-width:0; word-break:break-word; }
+  .modal-head button{ width:32px; height:32px; padding:0; border-radius:8px; background:var(--panel-2); border:1px solid var(--line); color:var(--text); font-size:15px; flex-shrink:0; }
+  .recv-sum{ font-size:12px; color:var(--sub); margin-bottom:10px; }
+  .recv-item{ padding:9px 0; border-bottom:1px solid rgba(255,255,255,.06); }
+  .recv-item:last-child{ border-bottom:none; }
+  .recv-who{ font-size:13.5px; font-weight:700; }
+  .recv-meta{ display:flex; justify-content:space-between; align-items:center; margin-top:3px; font-size:12px; color:var(--sub); }
+  .recv-meta b{ color:var(--accent); font-size:13px; }
   @media (max-width:420px){ .stat-grid{ grid-template-columns:repeat(2,1fr); } }
 </style>
 </head>
@@ -205,6 +252,17 @@
       <div id="dashCount" style="font-size:12px; color:var(--sub); margin-bottom:10px;"></div>
       <div id="dashList"><div class="muted-center">불러오는 중…</div></div>
       <div id="dashExtra" class="helptext" style="margin-top:10px;"></div>
+    </div>
+  </div>
+
+  <!-- 수령 상세 팝업 -->
+  <div id="recvModal" class="modal-overlay" style="display:none;">
+    <div class="modal-box">
+      <div class="modal-head">
+        <span class="mt" id="recvModalTitle"></span>
+        <button type="button" id="recvModalClose">✕</button>
+      </div>
+      <div id="recvModalBody"></div>
     </div>
   </div>
 
@@ -346,57 +404,72 @@ function receivedForItem(ownerName, it){
 }
 
 function renderAssignmentInfo(rec){
-  // 매번 전량 수령을 기본값으로 초기화(일부 수령 시 아래 조정기로 변경)
-  rec.items.forEach(it => { it._recv = Number(it.qty) || 0; });
-
-  const warn = `<div style="margin-bottom:12px; border-radius:10px; padding:10px 12px; color:var(--warn); font-weight:700; font-size:13px; line-height:1.6;">⚠️ 제품 규격 및 수량 확인 후 수령 바랍니다.<br>확인 부재로 분실 및 오배송 발생 시 책임지지 않습니다.</div>`;
-  const head = `<div class="helptext"><b style="color:var(--text)">${rec.name}</b>${rec.altName && norm(rec.altName)!==norm(rec.name) ? ` (오더생성자: ${rec.altName})` : ''} ${rec.dept?('· '+rec.dept):''}${rec.subReceivers && rec.subReceivers.length>1 ? ` · ${rec.subReceivers.join(', ')} 배정 합산`:''} 배정 품목 (총 ${rec.items.length}개, 빠짐없이 확인하고 가져가주세요):</div>`;
-
-  const lines = rec.items.map(it => {
+  // 기본 수령 수량 = 잔여(배정 − 이미수령). 남은 것보다 많이는 못 넣게 함.
+  rec.items.forEach(it => {
     const owner = it.owner || rec.name;
     const already = receivedForItem(owner, it);
-    const remain = Math.max(0, (Number(it.qty)||0) - already);
-    const recvInfo = already>0
-      ? `<div class="meta" style="color:${remain>0?'var(--warn)':'var(--ok)'}; font-size:11.5px;">이미 ${already}박스 수령 · 잔여 ${remain}박스${remain<=0?' (완료)':''}</div>` : '';
-    return `<div class="item-line"><span>${it.product}${it.spec?(' ('+it.spec+')'):''}${(rec.subReceivers && rec.subReceivers.length>1 && it.owner) ? `<div class="meta" style="color:var(--accent); font-size:11.5px;">담당자: ${it.owner}</div>` : ''}${it.note?`<div class="meta" style="color:var(--sub); font-size:11px; white-space:normal;">비고: ${it.note}</div>`:''}${recvInfo}</span><span>${it.qty}박스${it.units?(' · 총 '+it.units+'개'):''}</span></div>`;
+    it._already = already;
+    it._remain = Math.max(0, toNum(it.qty) - already);
+    it._recv = it._remain;
+  });
+
+  const warn = `<div style="margin-bottom:12px; border-radius:10px; padding:10px 12px; color:var(--warn); font-weight:700; font-size:13px; line-height:1.6;">⚠️ 제품 규격 및 수량 확인 후 수령 바랍니다.<br>확인 부재로 분실 및 오배송 발생 시 책임지지 않습니다.</div>`;
+  const head = `<div class="helptext"><b style="color:var(--text)">${rec.name}</b>${rec.altName && norm(rec.altName)!==norm(rec.name) ? ` (오더생성자: ${rec.altName})` : ''} ${rec.dept?('· '+rec.dept):''}${rec.subReceivers && rec.subReceivers.length>1 ? ` · ${rec.subReceivers.join(', ')} 배정 합산`:''} 배정 품목 (총 ${rec.items.length}개):</div>`;
+  const guide = `<div class="helptext" style="margin-top:2px;"><b style="color:var(--accent)">가져가는 수량</b>에 이번에 실제로 가져가는 박스 수를 넣으세요. 전량이면 그대로(잔여 전량) 두면 됩니다.</div>`;
+
+  const header = `<div class="pick-grid pick-th">
+    <div>품목</div>
+    <div>배정<span class="u">(box)</span></div>
+    <div>가져가는 수량<span class="u">(box)</span></div>
+    <div>총 수량<span class="u">(개)</span></div>
+  </div>`;
+
+  const rows = rec.items.map((it,i) => {
+    const hasU = toNum(it.units) > 0;
+    const perBox = toNum(it.qty)>0 ? toNum(it.units)/toNum(it.qty) : 0;
+    const takenUnits = Math.round(perBox * it._recv);
+    const done = it._remain<=0;
+    const metaBits = [];
+    if(rec.subReceivers && rec.subReceivers.length>1 && it.owner) metaBits.push(`<span style="color:var(--accent);">담당자: ${it.owner}</span>`);
+    if(it.note) metaBits.push(`<span style="color:var(--sub);">비고: ${it.note}</span>`);
+    if(it._already>0) metaBits.push(`<span style="color:${it._remain>0?'var(--warn)':'var(--ok)'};">이미 ${it._already}박스 수령 · 잔여 ${it._remain}박스${it._remain<=0?' (완료)':''}</span>`);
+    const meta = metaBits.length ? `<div class="pick-meta">${metaBits.join(' · ')}</div>` : '';
+    return `
+      <div class="pick-row">
+        <div class="pick-grid">
+          <div class="pick-name">${it.product}${it.spec?` <span class="spec">${it.spec}</span>`:''}</div>
+          <div class="pick-assigned">${it.qty}</div>
+          <div class="pick-stepper">
+            <button type="button" data-step="-1" data-i="${i}" ${done?'disabled':''}>−</button>
+            <input type="number" min="0" max="${it._remain}" data-qty="${i}" value="${it._recv}" ${done?'disabled':''}>
+            <button type="button" data-step="1" data-i="${i}" ${done?'disabled':''}>+</button>
+          </div>
+          <div class="pick-units"${hasU?` data-units="${i}"`:''}>${hasU?takenUnits:'-'}</div>
+        </div>
+        ${meta}
+      </div>`;
   }).join('');
 
-  const editorRows = rec.items.map((it,i) => `
-    <div class="qty-row">
-      <span class="name">${it.product}${it.spec?(' ('+it.spec+')'):''}</span>
-      <span class="stepper">
-        <button type="button" data-step="-1" data-i="${i}">−</button>
-        <input type="number" min="0" max="${Number(it.qty)||0}" data-qty="${i}" value="${it._recv}">
-        <span style="color:var(--sub); font-size:11px;">/${it.qty}</span>
-        <button type="button" data-step="1" data-i="${i}">+</button>
-      </span>
-    </div>`).join('');
-  const editorLink = `<span class="expand-hint" id="qtyEditLink">일부만 가져가요 · 수령 수량 조정 ▾</span>`;
-  const editor = `<div class="qty-editor" id="qtyEditor"><div class="helptext" style="margin-top:0; margin-bottom:4px;">전량 수령이면 그대로 두세요. 일부만 가져가면 실제 수량으로 줄여주세요.</div>${editorRows}</div>`;
+  empInfo.innerHTML = warn + head + guide + `<div class="pick-tbl">${header}${rows}</div>`;
 
-  empInfo.innerHTML = warn + head + lines + editorLink + editor;
-
-  const link = document.getElementById('qtyEditLink');
-  const editorEl = document.getElementById('qtyEditor');
-  link.addEventListener('click', () => {
-    editorEl.classList.toggle('open');
-    link.textContent = editorEl.classList.contains('open') ? '수량 조정 접기 ▴' : '일부만 가져가요 · 수령 수량 조정 ▾';
-  });
+  function updateUnits(i){
+    const it = rec.items[i];
+    const span = empInfo.querySelector(`[data-units="${i}"]`);
+    if(span){ const perBox = toNum(it.qty)>0 ? toNum(it.units)/toNum(it.qty) : 0; span.textContent = Math.round(perBox*it._recv); }
+  }
   empInfo.querySelectorAll('[data-qty]').forEach(inp => {
     inp.addEventListener('input', () => {
       const i = Number(inp.dataset.qty);
-      const max = Number(rec.items[i].qty)||0;
-      const v = Math.max(0, Math.min(max, Number(inp.value)||0));
-      rec.items[i]._recv = v;
+      const v = Math.max(0, Math.min(rec.items[i]._remain, Number(inp.value)||0));
+      rec.items[i]._recv = v; updateUnits(i);
     });
   });
   empInfo.querySelectorAll('[data-step]').forEach(btn => {
     btn.addEventListener('click', () => {
       const i = Number(btn.dataset.i);
       const inp = empInfo.querySelector(`[data-qty="${i}"]`);
-      const max = Number(rec.items[i].qty)||0;
-      const v = Math.max(0, Math.min(max, (Number(inp.value)||0) + Number(btn.dataset.step)));
-      inp.value = v; rec.items[i]._recv = v;
+      const v = Math.max(0, Math.min(rec.items[i]._remain, (Number(inp.value)||0) + Number(btn.dataset.step)));
+      inp.value = v; rec.items[i]._recv = v; updateUnits(i);
     });
   });
 }
@@ -646,6 +719,11 @@ function buildReceivedMap(logs){
 }
 
 // 품목(제품)별 배정/수령/잔여 집계 → "옥수수수염차 잔여 N박스"
+function toNum(v){
+  if(typeof v === 'number') return isFinite(v) ? v : 0;
+  const n = Number(String(v==null?'':v).replace(/[^0-9.\-]/g,'')); // "1,000" · "3박스" 등도 숫자만 추출
+  return isNaN(n) ? 0 : n;
+}
 function prodKey(it){ return (it.code || it.product || ''); }
 
 function computeStock(logs){
@@ -659,8 +737,8 @@ function computeStock(logs){
       const e = get(k);
       if(!e.product) e.product = it.product || k;
       if(!e.spec && it.spec) e.spec = it.spec;
-      const boxes = Number(it.qty) || 0;
-      const units = Number(it.units) || 0;
+      const boxes = toNum(it.qty);
+      const units = toNum(it.units);
       e.assignedBoxes += boxes;
       if(units>0){ e.assignedUnits += units; e.hasUnits = true; }
     });
@@ -673,84 +751,132 @@ function computeStock(logs){
       const e = get(k);
       if(!e.product) e.product = it.product || k;
       if(!e.spec && it.spec) e.spec = it.spec;
-      const boxes = Number(it.qty) || 0;
-      const raw = (it.recvQty !== undefined && it.recvQty !== null && it.recvQty !== '') ? Number(it.recvQty) : boxes;
-      const recvBoxes = isNaN(raw) ? 0 : raw;
-      const units = Number(it.units) || 0;
-      e.recvBoxes += recvBoxes;
-      if(units>0 && boxes>0){ e.recvUnits += units * (recvBoxes / boxes); }
+      const boxes = toNum(it.qty);
+      const raw = (it.recvQty !== undefined && it.recvQty !== null && it.recvQty !== '') ? toNum(it.recvQty) : boxes;
+      e.recvBoxes += raw;
+      const units = toNum(it.units);
+      if(units>0 && boxes>0){ e.recvUnits += units * (raw / boxes); }
     });
   });
 
   return Object.values(map).map(e => {
-    const recvBoxes = Math.min(e.recvBoxes, e.assignedBoxes); // 초과분은 배정량까지만
+    const recvClamped = Math.min(e.recvBoxes, e.assignedBoxes); // 표시용(초과분은 배정량까지만)
     return {
       ...e,
-      recvBoxes,
+      recvBoxesRaw: e.recvBoxes,
+      recvBoxes: recvClamped,
       remBoxes: Math.max(0, e.assignedBoxes - e.recvBoxes),
       remUnits: Math.max(0, Math.round(e.assignedUnits - e.recvUnits)),
-      pct: e.assignedBoxes>0 ? Math.round(recvBoxes / e.assignedBoxes * 100) : 0
+      pct: e.assignedBoxes>0 ? Math.round(recvClamped / e.assignedBoxes * 100) : 0
     };
   });
 }
 
 function renderDashboard(){
   const all = computeStock(logCache);
-  const q = norm((document.getElementById('dashSearch')||{}).value || '');
-  const list = q ? all.filter(e => norm(e.product).includes(q) || norm(e.spec).includes(q)) : all;
+  const assignedList = all.filter(e => e.assignedBoxes > 0);   // 배정에 없는(배정 0) 품목은 표시하지 않음
 
-  const totA = all.reduce((s,e)=>s+e.assignedBoxes,0);
-  const totR = all.reduce((s,e)=>s+e.recvBoxes,0);
-  const totRem = all.reduce((s,e)=>s+e.remBoxes,0);
-  const doneCnt = all.filter(e=>e.assignedBoxes>0 && e.remBoxes<=0).length;
+  const q = norm((document.getElementById('dashSearch')||{}).value || '');
+  const list = q ? assignedList.filter(e => norm(e.product).includes(q) || norm(e.spec).includes(q)) : assignedList;
+
+  const totA = assignedList.reduce((s,e)=>s+e.assignedBoxes,0);
+  const totR = assignedList.reduce((s,e)=>s+e.recvBoxes,0);
+  const totRem = assignedList.reduce((s,e)=>s+e.remBoxes,0);
+  const doneCnt = assignedList.filter(e=>e.remBoxes<=0).length;
   const pct = totA>0 ? Math.round(totR/totA*100) : 0;
 
   document.getElementById('dashStats').innerHTML = `
     <div class="stat none"><div class="num">${totRem}</div><div class="lbl">남은 박스<br>(전체)</div></div>
     <div class="stat"><div class="num">${pct}%</div><div class="lbl">전체 수령률<br>${totR}/${totA}박스</div></div>
-    <div class="stat"><div class="num">${all.length}</div><div class="lbl">품목 수</div></div>
+    <div class="stat"><div class="num">${assignedList.length}</div><div class="lbl">품목 수</div></div>
     <div class="stat ok"><div class="num">${doneCnt}</div><div class="lbl">소진완료</div></div>`;
 
   const countEl = document.getElementById('dashCount');
-  if(countEl) countEl.textContent = all.length ? (q ? `검색 결과 ${list.length}개 / 전체 ${all.length}개 품목` : `전체 ${all.length}개 품목`) : '';
+  if(countEl) countEl.textContent = assignedList.length ? (q ? `검색 결과 ${list.length}개 / 전체 ${assignedList.length}개 품목` : `전체 ${assignedList.length}개 품목`) : '';
 
   const el = document.getElementById('dashList');
-  if(all.length === 0){
-    el.innerHTML = `<div class="muted-center">등록된 배정이 없어요.</div>`;
-    updateLiveLabel();
-    return;
-  }
-  if(list.length === 0){
+  if(assignedList.length === 0){
+    el.innerHTML = `<div class="muted-center">배정 수량이 등록된 품목이 없어요.<br>(배정 데이터의 수량을 확인해 주세요)</div>`;
+  } else if(list.length === 0){
     el.innerHTML = `<div class="muted-center">'${document.getElementById('dashSearch').value}' 검색 결과가 없어요.</div>`;
-    updateLiveLabel();
-    return;
+  } else {
+    // 품목명 순 고정 정렬 → 실시간 갱신 때 행 순서가 바뀌지 않음
+    list.sort((a,b)=> (a.product||'').localeCompare(b.product||'','ko'));
+    const header = `<div class="dash-grid dash-th">
+      <div>품목</div>
+      <div>총<span class="u">(box)</span></div>
+      <div>수령<span class="u">(box)</span></div>
+      <div>잔여<span class="u">(box)</span></div>
+    </div>`;
+    const rows = list.map(e => {
+      const done = e.remBoxes<=0;
+      const low = !done && e.pct>=80;               // 80% 이상 나감 = 곧 소진
+      const remColor = done ? 'var(--ok)' : (low ? '#e0b84a' : 'var(--accent)');
+      return `
+        <div class="dash-trow" data-i="${list.indexOf(e)}">
+          <div class="dash-grid">
+            <div class="dash-pname">${e.product}${e.spec?` <span class="spec">${e.spec}</span>`:''}</div>
+            <div class="dash-num sub">${e.assignedBoxes}</div>
+            <div class="dash-num recv-link">${e.recvBoxes}</div>
+            <div class="dash-num rem" style="color:${remColor};">${e.remBoxes}</div>
+          </div>
+        </div>`;
+    }).join('');
+    el.innerHTML = `<div class="dash-tbl">${header}${rows}</div>`;
+    el.querySelectorAll('.dash-trow').forEach(row => {
+      row.addEventListener('click', () => openReceiptDetail(list[Number(row.dataset.i)]));
+    });
   }
-  // 품목명 순 고정 정렬 → 실시간 갱신 때 행 순서가 바뀌지 않음
-  list.sort((a,b)=> (a.product||'').localeCompare(b.product||'','ko'));
-  el.innerHTML = list.map(e => {
-    const done = e.assignedBoxes>0 && e.remBoxes<=0;
-    const low = !done && e.pct>=80;               // 80% 이상 나감 = 곧 소진
-    const st = done ? 'ok' : (low ? 'part' : 'none');
-    const remColor = done ? 'var(--sub)' : (low ? '#e0b84a' : 'var(--accent)');
-    const unitStr = e.hasUnits ? ` (약 ${e.remUnits.toLocaleString()}개)` : '';
-    const remText = done ? `<b style="color:${remColor}; font-size:15px;">소진완료</b>` : `<b style="color:${remColor};">${e.remBoxes}</b>박스 남음`;
-    return `
-      <div class="stock-row">
-        <div class="s-top">
-          <div class="s-name">${e.product}${e.spec?`<span class="s-spec"> · ${e.spec}</span>`:''}</div>
-          <div class="s-rem">${remText}</div>
-        </div>
-        <div class="prog ${st}"><i style="width:${e.pct}%"></i></div>
-        <div class="s-foot">
-          <span>수령 ${e.recvBoxes} / 총 ${e.assignedBoxes}박스</span>
-          <span>${done?'✓ 전량 수령':`잔여 ${e.remBoxes}박스${unitStr}`}</span>
-        </div>
-      </div>`;
-  }).join('');
 
   document.getElementById('dashExtra').innerHTML = '';
   updateLiveLabel();
 }
+
+function fmtRecvTime(t){
+  const d = new Date(t); if(isNaN(d)) return t||'';
+  const p = n => String(n).padStart(2,'0');
+  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+function receiptsForKey(key){
+  const out = [];
+  (logCache||[]).forEach(l => {
+    (l.assigned||[]).forEach(it => {
+      if(prodKey(it) === key){
+        const q = (it.recvQty!==undefined && it.recvQty!==null && it.recvQty!=='') ? toNum(it.recvQty) : toNum(it.qty);
+        if(q > 0) out.push({ time:l.time, orderName:l.name, actualReceiver:l.actualReceiver, qty:q });
+      }
+    });
+  });
+  out.sort((a,b)=> new Date(b.time) - new Date(a.time));
+  return out;
+}
+function openReceiptDetail(entry){
+  if(!entry) return;
+  const recs = receiptsForKey(entry.key);
+  document.getElementById('recvModalTitle').innerHTML = `${entry.product}${entry.spec?` <span style="color:var(--sub);font-size:12px;font-weight:500;">${entry.spec}</span>`:''}`;
+  const body = document.getElementById('recvModalBody');
+  if(recs.length === 0){
+    body.innerHTML = `<div class="muted-center">아직 수령 기록이 없어요.</div>`;
+  } else {
+    const total = recs.reduce((s,r)=>s+r.qty,0);
+    body.innerHTML = `<div class="recv-sum">수령 ${total}박스 · 잔여 ${entry.remBoxes}박스 · 기록 ${recs.length}건</div>` +
+      recs.map(r => {
+        const who = (r.actualReceiver && norm(r.actualReceiver)!==norm(r.orderName))
+          ? `${r.actualReceiver} <span style="color:var(--sub);font-size:11.5px;font-weight:500;">(대리 · 오더: ${r.orderName})</span>`
+          : r.orderName;
+        return `<div class="recv-item">
+          <div class="recv-who">${who}</div>
+          <div class="recv-meta"><span>${fmtRecvTime(r.time)}</span><b>${r.qty}박스</b></div>
+        </div>`;
+      }).join('');
+  }
+  document.getElementById('recvModal').style.display = 'flex';
+}
+function closeReceiptDetail(){ document.getElementById('recvModal').style.display = 'none'; }
+document.getElementById('recvModalClose').addEventListener('click', closeReceiptDetail);
+document.getElementById('recvModal').addEventListener('click', (e) => {
+  if(e.target === document.getElementById('recvModal')) closeReceiptDetail();
+});
 
 function updateLiveLabel(){
   const el = document.getElementById('liveLabel');
